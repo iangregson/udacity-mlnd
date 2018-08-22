@@ -48,6 +48,36 @@ _(approx. 1 page)_
 
 In this final section, summarize a theoretical workflow for approaching a solution given the problem. Provide thorough discussion for what strategies you may consider employing, what analysis of the data might be required before being used, or which algorithms will be considered for your implementation. The workflow and discussion that you provide should align with the qualities of the previous sections. Additionally, you are encouraged to include small visualizations, pseudocode, or diagrams to aid in describing the project design, but it is not required. The discussion should clearly outline your intended workflow of the capstone project.
 
+A theoretical workflow for this project can be summarized as follows:
+
+**Basic analysis of the shape and features of the data**
+
+I expect the data to be in a format that will require a great deal of preprocessing. In this first step, I will asses the shape of the data and the features it contains and identify features that need to scaled, one-hot-encoded, fillna or removed.
+
+Once these steps are identified, I will apply all the necessary data transformations.
+
+**Preparation of evaluation metrics**
+
+In this step I will import the necessary libraries and initliaze the F1 Score and Confusion Matrix metrics.
+
+**Perparation of dummy classifier**
+
+Next, I will prepare the dummy classifier that will be used as the baseline for evaluating model performance.
+
+**Initialization of models and hyper parameter search**
+
+Next, I will initialize the models that will be used in this project. Since I will be working with structured data, I expect that there will be a high number of features and the datasets will have the potential to be sparsely populated. From my study on this course, I have gained the intuition that the most appropriate models will therefore be Support Vector Machines and Random Forest.
+
+I will use Grid Search to locate the best hyperparameter configuration for both models.
+
+**Training**
+
+In this section I will prepare training and validation datasets, then train each model. I will save each model as a pickle for future inference.
+
+**Evaluation**
+
+In this section I will asses which model performed best based on the F1 Score metric. The model with best performance can then be compared with the performance of the dummy classifier to establish whether or not the model provides a better than random classification.
+
 -----------
 
 **Before submitting your proposal, ask yourself. . .**
