@@ -83,4 +83,26 @@ def get_labels(data, label_column='StageName'):
     le = LabelEncoder()
     y = le.fit_transform(labels)
     return y
+
+def drop_corr_columns(data, labels):
+    # Create correlation matrix
+    corr_matrix = data.corr().abs()
+    # Select upper triangle of correlation matrix
+    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
+    # Find index of feature columns with correlation greater than 0.95
+    to_drop = [column for column in upper.columns if any(upper[column] > 0.95)]
+
+    # Drop features 
+    data = data.drop(to_drop, axis='columns')
+    
+    # Drop features that are correlated with the labels
+    l = pd.DataFrame()
+    l['labels'] = labels;
+    corr = data.corrwith(l)
+    cols = list(corr[corr.notnull()].keys())
+    data = data.drop(cols, axis='columns')
+
+    return data
+    
+
     
