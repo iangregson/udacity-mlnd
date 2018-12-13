@@ -15,6 +15,10 @@ In this section, look to provide a high-level overview of the project in laymanâ
 
 The domain background for this project is that it comes directly from my work for a startup that is building a customer data platform that helps users maximize their account based recurring revenue. In this field, BizOps profressional leverage large quantities of data from multiple sources such as CRMs or customer engagement analytics tools. The platform we build collates thiss data to provide a single view of an account (a non trivial problem in this space) but much of the insights that are gleaned from this large quantity of data come from the judgements of BizOps professionals studying the data.
 
+<p align="center">
+  <img width="460" height="300" src="images/model_cv_box_plot.png">
+</p>
+
 The project seeks to take steps into a new way of deriving insights from this large suite of structured data. By automating some aspects of the data analysis with machine learning models will free up the professionals to apply their extensive domain expertise in solving new problems.
 
 I have a personal motivation in undertaking this project because I want to help push my team to become leaders in our field.
@@ -66,7 +70,74 @@ In this section, you will be expected to analyze the data you are using for the 
 - _If a dataset is **not** present for this problem, has discussion been made about the input space or input data for your problem?_
 - _Are there any abnormalities or characteristics about the input space or dataset that need to be addressed? (categorical variables, missing values, outliers, etc.)_
 
+**DataFrame Info**
 
+```
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 33338 entries, 0 to 33337
+Data columns (total 58 columns):
+Account_Region__c                             25312 non-null object
+Account_Theater__c                            10070 non-null object
+ACV__c                                        33338 non-null float64
+C_Contact_has_accepted_a_follow_on_step__c    33338 non-null bool
+Consulting_Services_Amount__c                 33338 non-null float64
+Created_by_Role__c                            33338 non-null object
+Deal_Type__c                                  781 non-null object
+Decision_Process__c                           0 non-null float64
+Delivery_Type__c                              2 non-null object
+Deployment_timeframe__c                       11 non-null object
+Difference_between_Created_and_Modified__c    33338 non-null float64
+DM_Close_Type__c                              33338 non-null object
+DM_Opp_Age__c                                 33338 non-null float64
+DM_Playbook_Stage__c                          22767 non-null object
+DM_Playbook_Status__c                         33338 non-null object
+Engagement_Mode__c                            18933 non-null object
+Exchange_Reuse_Mgr__c                         33338 non-null bool
+Follow_on_Meeting_Completed__c                33338 non-null bool
+Follow_on_meeting_scheduled__c                33338 non-null bool
+forecast__c                                   31570 non-null object
+ForecastCategory                              33338 non-null object
+HasOpportunityLineItem                        33338 non-null bool
+Inbound__c                                    33338 non-null bool
+Inbound_Source__c                             0 non-null float64
+IsClosed                                      33338 non-null bool
+IsSplit                                       33338 non-null bool
+IsWon                                         33338 non-null bool
+Key_Account__c                                33338 non-null bool
+Large_Deal__c                                 33338 non-null bool
+Lead_Passed_By_Group__c                       14124 non-null object
+Lead_Passed_By_Name__c                        14823 non-null object
+Lead_Passed_By_Role__c                        14803 non-null object
+LeadSource                                    18209 non-null object
+Lead_Source_Asset__c                          14519 non-null object
+Lead_Source_Detail__c                         14832 non-null object
+Lead_Type__c                                  33296 non-null object
+Metric_Accept2Close__c                        33338 non-null float64
+Metric_Create2Close__c                        33338 non-null float64
+M_Is_decision_maker_mobilizer_champ__c        33338 non-null bool
+N_Contact_has_bus_tech_goal_to_address__c     33338 non-null bool
+New_and_Add_On_Subscription__c                27886 non-null float64
+New_Business_Subscription__c                  14184 non-null float64
+Number_of_Products__c                         33338 non-null float64
+OA_Project_Prefix__c                          33338 non-null object
+Opportunity_Classification__c                 18682 non-null object
+Opportunity_Contact_Roles__c                  26576 non-null float64
+Opportunity_Source__c                         32330 non-null object
+Sales_Channel__c                              31384 non-null object
+Services_Amount__c                            33338 non-null float64
+Services_Attached__c                          33338 non-null bool
+Stage__c                                      33338 non-null object
+Subscr_Fields_Not_Populated__c                33338 non-null float64
+Subscription_Amount__c                        33338 non-null float64
+Total_List_Price__c                           33338 non-null float64
+Who_is_leading_the_sale__c                    3554 non-null object
+Amount                                        31845 non-null float64
+StageName                                     33338 non-null object
+Type                                          32928 non-null object
+dtypes: bool(14), float64(17), object(27)
+memory usage: 11.6+ MB
+None
+```
 
 It appears the dataset contains a number of cells that are NaN or a data type that is unsuitable for using in an ML model. These will need to be removed during the project's data preprocessing step.
 
@@ -207,6 +278,10 @@ In this section, the process for which metrics, algorithms, and techniques that 
 #### Metrics
 
 #### Model selection
+
+<p align="center">
+  <img width="460" height="300" src="images/model_cv_box_plot.png">
+</p>
 
 ### Refinement
 
