@@ -551,14 +551,6 @@ data_types = pd.DataFrame(data_types_list, columns=['Data type','Count'])
 data_types.plot(x='Data type', y='Count', kind='barh')
 ```
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10ea2ccf8>
-
-
-
-
 ![png](output_14_1.png)
 
 This shows that the dataset is mainly comprised of categorical features and hinted that a classifier like Random Forest may yield the best results. This also confirmed the importance of using preprocessing steps to make these categorical features usable by the classification models.
@@ -573,14 +565,6 @@ for col in raw_data:
     null_value_counts.append((col, raw_data[col].isnull().sum()))
 pd.DataFrame(null_value_counts, columns=['Column', 'NullValueCount']).plot(x='Column', y='NullValueCount', kind='barh', figsize=(5,15))
 ```
-
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x106f221d0>
-
-
-
 
 ![png](output_16_1.png)
 
@@ -674,92 +658,80 @@ high_dimension_categorical_features.plot.barh(x='Column',y='UniqueValueCount')
 </div>
 
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10ec403c8>
-
-
-
-
 ![png](output_18_2.png)
 
 
-This tells that there are indeed a number of features in the dataset with high dimensionality. This will be addressed with feature engineering tat employs some kind of unsupervised clustering step like `sklearn.cluster.FeatureAgglomeration`.
+This tells that there are indeed a number of features in the dataset with high dimensionality. This will be addressed with feature engineering that employs some kind of unsupervised clustering step like `sklearn.cluster.FeatureAgglomeration`.
 
 **Labels**
 
+Since this project aims to build a model that can predict which opportunities will convert to be won, the dataset must have some label to indicate which opportunities were _Closed Won_ and which were _Closed Lost_. An inspection of the column names in the dataset revealed a number of features that were potentially suitable for providing the labels for training, as the visualizations below illustrate.
+
+The columns identified as potential labels were:
+
+* `StageName`
+* `Stage__c`
+* `DM_Close_Type__c`
+* `IsWon`
+
+
+**StageName**
 
 ```python
 pd.value_counts(raw_data['StageName']).plot.bar()
 ```
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x106f022b0>
-
-
-
-
 ![png](output_21_1.png)
 
 
+This shows that the bulk of the samples have a value of **'Closed Won'** or **'Closed Lost'** in the `StageName` feature so this could be used as the label column if the samples that do not have one of these values were removed.
+
+**Stage__c**
 
 ```python
 pd.value_counts(raw_data['Stage__c']).plot.bar()
 ```
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10ed6efd0>
-
-
-
-
 ![png](output_22_1.png)
 
+This chart made it clear that the `Stage__c` feature is an exact copy of the `StageName` feature.
 
+
+**DM\_Close\_Type__c**
 
 ```python
 pd.value_counts(raw_data['DM_Close_Type__c']).plot.bar()
 ```
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10ee20048>
-
-
-
-
 ![png](output_23_1.png)
 
+The plot for the `DM_Close_Type__c` feature shows that this contains different categories than the previous two features. Instead of having many different stage names, this feature classifies each sample as either _Won_, _Lost_ or _Open_.
 
+Comparing this chart to the previous plot of the `StageName` feature, a correlation can clearly be seen with _Won_ to _Closed Won_ but there is not such a clear correlation between _Lost_ and _Closed Lost_.
+
+
+**IsWon**
 
 ```python
 pd.value_counts(raw_data['IsWon']).plot.bar()
 ```
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10ef418d0>
-
-
-
-
 ![png](output_24_1.png)
 
+Lastly, the `IsWon` feature is a boolean flag indicating whether or not that opportunity has been won or lost. Also, a clear correlation can be seen when comparing this chart with the previous plot of the `DM_Close_Type__c` feature: the _False_ values in the `IsWon` feature are the sum of the _Closed Lost_ and _Open_ values and the _True_ values are directly correlated with the _Closed Won_ values.
 
-This tells that there are multiple features that could be used as our labels but only one is required. Care should be taken to use one properly and remove the others.
+Out of the various options for obtaining labels for the opportunities dataset, the `IsWon` feature is best because it is already a binary feature and requires no further processing other than label encoding.
 
-E.g. remove samples with `DM_Close_Type__c='Open'`, use the `IsWon` feature as our labels, drop columns closely correlated with this.
+These visualizations also helped establish that the other features will be highly correlated with the labels so a preprocessing step to drop these features will be necessary.
+
+Lastly, the visualizations demonstrated that some samples in the `IsWon`=_False_ class are actually opportunities that are still "open". Since this project seeks to create a binary classification model, these samples should be dropped from the dataset as they could cause some opportunities to be wrongly predicted as being lost.
+
 
 **Correlations**
 
+When creating visualizations of the potential candidate features for labelling the dataset, it was established that there some features that are highly correlated with the chosen label feature. This section visualizes these correlations in order to better understand what additional preprocessing will be required.
 
+<!--
 ```python
 print(high_dimension_categorical_features['Column'])
 ```
@@ -833,19 +805,13 @@ cmap = sns.diverging_palette(220, 10, as_cmap=True)
 sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 ```
-
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10f0cdba8>
-
-
+-->
 
 
 ![png](output_31_1.png)
 
 
-This shows there are indeed highly correlated features, but it's hard to tell from this chart which is which. A cursory look hints that the high correlations look predominantly like proxies for our labels. Let's zoom in on that...
+This high level visual shows there are indeed highly correlated features, but it's hard to tell from this chart which is which. A cursory look hints that the high correlations look predominantly like proxies for our labels.
 
 
 ```python
@@ -854,23 +820,57 @@ corr_with = encoded_corr_data.corrwith(is_won, axis=0)
 corr_with.abs()[corr_with > 0.5].plot(kind='barh', figsize=(5,15))
 ```
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x11016b080>
-
-
-
-
 ![png](output_33_1.png)
 
-
-This shows the columns most highly correlated with our label column - these features should be removed.
+Further exploration on the intuition above reveals the features that are most highly correlated with the chosen label. These features should be dropped from the dataset during preprocessing so as to avoid any negative effects on the training of the classifiers.
 
 ### Algorithms and Techniques
 
+This project will emply a number of different algorithms, mainly from the _sci-kit learn_ libraries. The notable exceptions being the classifiers from the _Microsoft LightGBM_ and _XGBoost_ libraries.]
+
+The algorithms fall broadly into two categories: data processing utilities and classifiers. The specific algorithms are listed below.
+
+**Classifiers**
+
+Five classifiers will be used during model selection and a dummy classifier will be employed for benchmarking.
+
+```python
+# Dummy classifier for creating a benchmark
+from sklearn.dummy import DummyClassifier
+
+# Real classifiers for model selection
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+import lightgbm as lgb
+import xgboost as xgb
+
+# import the project specific utils 
+import utils
+
+```
+
+For the initial model selection step, the classifiers were initialized with their default parameters. During the refinement step, the performant models that were taken forward had hyperparameters tuned using grid search with cross validation scored using the f1 score metric.
+
+
+**Processing utilities**
+
+A number of utilities were used for feature engineering, encoding, scaling, selection; cross validation and splitting the data into training and test datasets.
+
+```python
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.preprocessing import LabelEncoder, MaxAbsScaler
+from sklearn.feature_selection import SelectKBest, mutual_info_classif
+from sklearn.cluster import FeatureAgglomeration
+
+# Plus, we want the sklearn model selection tools for cross validation,
+# grid search and splitting traingin and testing data.
+from sklearn import model_selection
+```
+
 **Constants**
 
+A number of constants were set up to configure these processing utilities.
 
 ```python
 # Set up some necessary constants
@@ -885,54 +885,13 @@ LABEL_COLUMN = 'IsWon'
 TEST_SIZE = 0.2
 ```
 
-**Classifiers**
-
-
-```python
-# Set up the dummy classifier for Benchmarking
-from sklearn.dummy import DummyClassifier
-
-# Real classifiers for model selection
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.naive_bayes import GaussianNB
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
-import lightgbm as lgb
-import xgboost as xgb
-import warnings
-warnings.filterwarnings('ignore')
-import utils
-
-```
-
-    /usr/local/lib/python3.6/site-packages/lightgbm/__init__.py:46: UserWarning: Starting from version 2.2.1, the library file in distribution wheels for macOS is built by the Apple Clang (Xcode_9.4.1) compiler.
-    This means that in case of installing LightGBM from PyPI via the ``pip install lightgbm`` command, you don't need to install the gcc compiler anymore.
-    Instead of that, you need to install the OpenMP library, which is required for running LightGBM on the system with the Apple Clang compiler.
-    You can install the OpenMP library by the following command: ``brew install libomp``.
-      "You can install the OpenMP library by the following command: ``brew install libomp``.", UserWarning)
-
-
-**Processing utilities**
-
-
-```python
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.preprocessing import LabelEncoder, MaxAbsScaler
-from sklearn.feature_selection import SelectKBest, mutual_info_classif
-from sklearn.cluster import FeatureAgglomeration
-
-# Plus, we want the sklearn model selection tools for cross validation,
-# grid search and splitting traingin and testing data.
-from sklearn import model_selection
-```
-
-All classifiers will go through model selection using default parameters. This should be enough to endicate which is the more performant model. The most performant model will then have it's parameters tuned using `model_selection.GridSearchCV`.
-
 ### Benchmark
 
+For the purposes of this project, it is sufficient to build a model that is demonstrably better than a guess. Thus, it is sufficient to use sci-kit learn's dummy classifier to build a fake model. Then, the performance of this dummy model will be measured using the same metric (**f1 score**) as will be used to asses the final model.
+
+The mean **f1 score** of the cross validated dummy classifier then gives a benchmark against which to judge the final model.
+
+<!--
 
 ```python
 # Filter down the raw data to only include samples from opportunities that
@@ -1057,14 +1016,6 @@ sns.heatmap(benchmark_corr, mask=mask, cmap=cmap, vmax=.3, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 ```
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10be10c50>
-
-
-
-
 ![png](output_50_1.png)
 
 
@@ -1090,14 +1041,6 @@ sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 ```
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10fc54ba8>
-
-
-
-
 ![png](output_51_1.png)
 
 
@@ -1106,16 +1049,7 @@ sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
 corr['label'].abs()[corr['label'].abs() > 0.5].plot(kind='barh')
 ```
 
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10f0be400>
-
-
-
-
 ![png](output_52_1.png)
-
 
 
 ```python
@@ -1147,7 +1081,7 @@ print('Benchmark array shape: ', benchmark_array.shape)
     Benchmark data shape:  (30339, 31)
     Benchmark array shape:  (30339, 63)
 
-
+-->
 
 ```python
 # train test split
@@ -1171,34 +1105,51 @@ display('Mean f1_score from KFold cross validation {:0.2f}'.format(cv_results.me
     'Mean f1_score from KFold cross validation 0.56'
 
 
+The DummyClassifier achieves an average **f1 score** of **56%**. This establishes a baseline for assessing the success of the final modal. Given the dataset, a guess could be expected to be accurate in 56% of predictions. In order to demonstrate that the final model built in the project is better than a guess, it must a achieve a better average **f1 score** than **56%**.
+
 ## 3. Methodolgy
+
+This section of the report will step through the execution phase of the project from data preprocessing through implementation.
 
 ### Data Preprocessing
 
+As indentified in the data exploration and exploratory visualizations section of the project, a number of data preprocessing steps were identified. The list of necessary steps in order is as follows:
+
+* Load the raw dataset
+* Filter the samples down to only those that include the labels that are useful for purposes here: Closed won and Closed lost
+* Separate the labels column from the features and encode them
+* Drop features that have too many null samples and backfill the remaining the features
+* Separate out categorical features with too many dimensions for further processing
+* One-hot-encode the high dimensional features and use `FeatureAgglomeration` to reduce the resulting number of encoded features
+* One-hot-encode the rest of the features dataset
+* Drop features that are highly correlated with the labels
+* Write the processed dataset to CSV and make a final inspection
+* Final prep of the features dataset as a numpy array
+* Split data into training and testing sets
+
+----------------------------------------------------------------------
+
+**Load the raw dataset**
 
 ```python
-# Load the dataset
 raw = pd.read_csv('data/csv/raw_data.csv', low_memory=False)
 print('Raw data shape: ', raw.shape)
 ```
 
     Raw data shape:  (33338, 58)
 
-
+**Filter the samples down to only those that include the labels that are useful for purposes here: _Closed Won_ and _Closed Lost_**
 
 ```python
-# Filter down the raw data to only include samples from opportunities that
-# are won or lost
 df = raw[raw['DM_Close_Type__c'].isin(['Lost','Won'])]
 print('df shape: ', df.shape)
 ```
 
-    df shape:  (30339, 58)
+    Features shape:  (30339, 58)
 
-
+**Separate the labels column from the features and encode them**
 
 ```python
-# Pull our labels out from the benchmark data and encode them
 labels = np.asarray(df[LABEL_COLUMN])
 labels = LabelEncoder().fit_transform(labels)
 df = df.drop([LABEL_COLUMN], axis='columns')
@@ -1206,10 +1157,10 @@ print('df shape: ', df.shape)
 print('labels shape: ', labels.shape)
 ```
 
-    df shape:  (30339, 57)
-    labels shape:  (30339,)
+    Features shape:  (30339, 57)
+    Labels shape:  (30339,)
 
-
+**Drop columns that have too many rows without a value and backfill the remain the columns**
 
 ```python
 # First pass at dropping na columns
@@ -1219,7 +1170,7 @@ df = df.dropna(thresh=na_thresh, axis='columns')
 print('df shape: ', df.shape)
 ```
 
-    df shape:  (30339, 34)
+    Features shape:  (30339, 34)
 
 
 
@@ -1227,7 +1178,7 @@ print('df shape: ', df.shape)
 # Backfill the remaining columns
 df = df.fillna(method='backfill', axis='columns')
 ```
-
+**Separate out categorical features with too many dimensions for further processing**
 
 ```python
 # Pick out high dimensional features 
@@ -1245,44 +1196,37 @@ print('High dimensional data shape: ', hd_features.shape)
 print('df shape: ', df.shape)
 ```
 
-    High dimensional data shape:  (30339, 14)
-    df shape:  (30339, 20)
+    High dimensional features shape:  (30339, 14)
+    Features shape:  (30339, 20)
 
-
+**One-hot-encode the high dimensional features and use `FeatureAgglomeration` to reduce the resulting number of encoded features**
 
 ```python
-# Encode and agglomerate high dimensional features
 hd_features = utils.encode(hd_features)
 hd_features = FeatureAgglomeration(n_clusters=32).fit_transform(hd_features)
+```
 
-# Encode the rest of the data
+**One-hot-encode the rest of the features dataset**
+
+```python
 df = utils.encode(df)
 
 print('High dimensional data shape: ', hd_features.shape)                           
 print('df shape: ', df.shape)
 ```
 
-    High dimensional data shape:  (30339, 32)
-    df shape:  (30339, 40)
+    High dimensional features shape:  (30339, 32)
+    Features shape:  (30339, 40)
 
-
+**Drop features that are highly correlated with the labels**
 
 ```python
-# Remove highly correlated features with label
 corr_df = df.copy(deep=True)
 corr_df['label'] = labels
 
 corr = corr_df.corr()
 corr['label'].abs()[corr['label'].abs() > 0.5].plot(kind='barh')
 ```
-
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10ffe52e8>
-
-
-
 
 ![png](output_68_1.png)
 
@@ -1294,18 +1238,11 @@ df = df.drop(columns=cols_to_drop)
 print('df shape: ', df.shape)
 ```
 
-    df shape:  (30339, 31)
+    Features shape:  (30339, 31)
 
-
-
-```python
-# Final drop of null columns
-df = df.dropna(axis='columns')
-```
-
+**Final prep of the features dataset as a numpy array**
 
 ```python
-# Prep features array
 features = np.hstack((np.asarray(df), hd_features))
 
 print('High dimensional data shape: ', hd_features.shape)
@@ -1314,12 +1251,12 @@ print('Features array shape: ', features.shape)
 print('Labels array shape: ', labels.shape)
 ```
 
-    High dimensional data shape:  (30339, 32)
-    df shape:  (30339, 30)
-    Features array shape:  (30339, 62)
+    High dimensional features shape:  (30339, 32)
+    Features shape:  (30339, 30)
+    Combined Features array shape:  (30339, 62)
     Labels array shape:  (30339,)
 
-
+**Split data into training and testing sets**
 
 ```python
 # train test split
@@ -1328,9 +1265,9 @@ X_train, X_test, y_train, y_test = model_selection.train_test_split(features, la
 
 ### Implementation
 
+With the data now processed and split into training and test datasets, the implementation phase trained five classifiers using K-Fold cross validation scored with the **f1 score** metric. When the training was completed the mean score for each model was reported and plotted for review.
 
 ```python
-# Set up our data structure of models
 models = []
 models.append(('LR', LogisticRegression()))
 models.append(('NB', GaussianNB()))
@@ -1376,41 +1313,56 @@ plt.show()
 
 ![png](output_75_1.png)
 
+It was clear from this that the implementation yielded 5 models that all out-performed the benchmark by a considerable margin. Within the 5 models, the most succesful were Random Forest, LightGBM and XGBoost - all achieving a mean *f1 score** above 95%.
+
 
 ### Refinement
 
+While the results reported during implementation are encouraging, there is room for improvement for the following reasons.
+
+There can often be a significant difference between scores obtained during cross validation and those obtained in testing.
+
+The variance in scores for each KFold pass across each model is quite disparate - it would be better for these to be more consitent
+
+The large gap in performance between the Logistic Regression classifier and the Random Forest / Gradient Boosting classifiers also suggests that the latter classifiers may be over fitting (especially since these classifiers are more prone to overfitting generally).
+
+To try to improve upon the cross validation results, the following steps were taken:
+
+* Feature scaling
+* Feature selection
+* Repeat the cross validation with the refined dataset on the same classifiers
+* Identify the two most performant classifiers and train models from them using grid search with cross validation
+
+
+**Feature scaling**
 
 ```python
 X = features.copy()
 y = labels.copy()
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=TEST_SIZE, random_state=SPLIT_RANDOM_SEED)
 
-# Feature scaling
 X_train = MaxAbsScaler().fit_transform(X_train)
 X_test = MaxAbsScaler().fit_transform(X_test)
 ```
 
+**Feature selection**
 
 ```python
-# Feature selection
 X_train = SelectKBest(score_func=mutual_info_classif, k=K_FEATURES).fit_transform(X_train, y_train)
 X_test = SelectKBest(score_func=mutual_info_classif, k=K_FEATURES).fit_transform(X_test, y_test)
 ```
 
 
+**Repeat the cross validation with the refined dataset on the same classifiers**
+
 ```python
-# Set up our data structure of models
 models = []
 models.append(('LR', LogisticRegression()))
 models.append(('NB', GaussianNB()))
 models.append(('RF', RandomForestClassifier()))
 models.append(('LGBM', lgb.sklearn.LGBMClassifier(objective='binary')))
 models.append(('XGB', xgb.XGBClassifier(objective='binary:logistic')))
-```
 
-
-```python
-# Model Evaluation via cross validation
 results = []
 names = []
 
@@ -1441,43 +1393,15 @@ plt.show()
 
 ![png](output_80_1.png)
 
+The results of this stage of refinement are very interesting in that the performance of the Naive Bayes and Logistic Regression models improved significantly while the Random Forest and Gradient Boosting classifiers stayed around the same.
 
+It was also noteworthy that the spread of results for each KFold were much more event spread - the standard deviation for each model was around 1%.
 
-```python
-X = features.copy()
-y = labels.copy()
-X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=TEST_SIZE, random_state=SPLIT_RANDOM_SEED)
-```
+**Identify the two most performant classifiers and train models from them using grid search with cross validation**
 
+The win for most performant model is a two way tie between Light GBM and XGBoost - both scoring a mean **f1 score** of 96%. A very close third is Random Forest with a score of 95%. However, given that the Light GBM and XGBoost are very similar, it would be more prudent to select a different second model to take forward for hyperparameter tuning: the results from two similar classifiers are not likely to vary enough for this to be valuable.
 
-```python
-# Set up our data structure of models
-models = []
-models.append(('LR', LogisticRegression()))
-models.append(('NB', GaussianNB()))
-models.append(('RF', RandomForestClassifier()))
-models.append(('LGBM', lgb.sklearn.LGBMClassifier(objective='binary')))
-models.append(('XGB', xgb.XGBClassifier(objective='binary:logistic')))
-
-scores = []
-
-for name, model in models:
-    clf = model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    score = f1_score(y_test, y_pred)
-    scores.append((name, score))
-
-for name, score in scores:
-    print(name, score)
-```
-
-    LR 0.871687587169
-    NB 0.718105908466
-    RF 0.956534594914
-    LGBM 0.964536928488
-    XGB 0.959612277868
-
-
+The two selected classifiers are therefore Light GBM and Logistic Regression.
 
 ```python
 grid_params = {
@@ -1521,6 +1445,7 @@ for name, score in scores:
     LR 0.939812380966
     LGBM 0.962049929935
 
+After hyperparameter tuning using grid search with cross validation, the Logistic Regression classifier has improved by 1% to achieve a best score of **94%**. The Light GBM has stayed the same at **96%**.
 
 ## 4. Results
 
@@ -1534,4 +1459,51 @@ for name, score in scores:
 
 ### Reflection
 
+This project can be summarized as follows:
+
+* A problem was identified
+	* ML provides a potential solution
+	* A method of scoring an ML model conceived
+* A dataset was created
+	* Analyzed
+	* Visualized
+	* Processing steps identified
+* A number of suitable algorithms were identified
+	* For binary classification of records 
+	* For data processing
+* A benchmark was established
+	* Effectively putting a % on "how good is a guess?"
+* The dataset was processed accoring to steps identified earlier
+	* Establish labels
+	* Drop unwanted features and samples
+	* Encode the categorical data
+	* Reduce dimensionality in categorical data with too many categorie
+	* Drop correlated features 
+	* Split the data into training and test datesets
+* Implement and train models using the selected classifiers
+	* Repeat this process using cross validation to gain confidence in each model
+* Refine the data
+	* Feature scaling
+	* Feature selection
+	* Repeat the training process with cross validation and note improvements
+	* Tune hyperparameters on the most appropriate classifiers and train these with cross validation
+* Evaluate the results
+	* Train and test the selected classifiers
+	* Choose the best one and evaluate it's performance
+
+There were parts of the project that were very interesting:
+
+* Identifying high dimensional features and reduce their dimensionality
+* Identify features that are directly correlated with the labels
+
+These were also the hardest parts of the project.
+
+The final model passed it's benchmark criteria of being "better than a guess" - it's 96% **f1 score** far exceed the 56% scored by the dummy classifier.
+
+The final model exceed my expectations and I would certainly consider using it in a production situation after some more testing on different data. My biggest concern would be that the data is overfit to this particular customer's data.
+
+I think the result here are interesting enough to suggest that there is scope for using the same approach to build models for classifing leads and accounts in terms of whether they will or will not convert to opportunities or renewals respectively.
+
 ### Improvement
+
+There is always room for improvement...
