@@ -1,6 +1,7 @@
 # Machine Learning Engineer Nanodegree
 ## Capstone Project
 Ian Gregson
+
 December 19 2018
 
 # 1. Definition
@@ -47,20 +48,22 @@ f1_scorer = make_scorer(f1_score)
 ## 2. Analysis
 
 ### Data Exploration
-
+<!--
 
 ```python
 import pandas as pd
 raw_data = pd.read_csv('data/csv/raw_data.csv', low_memory=False)
 ```
 
+-->
+
 Firstly the raw dataset is loaded up in a Pandas DataFrame and inspected using the `.info()` method.
 
-
+<!--
 ```python
 display(raw_data.info())
 ```
-
+-->
     <class 'pandas.core.frame.DataFrame'>
     RangeIndex: 33338 entries, 0 to 33337
     Data columns (total 58 columns):
@@ -133,11 +136,11 @@ display(raw_data.info())
 This reveals that the dataset has 58 features and 33338 samples. Some of the features have no null values, some features have many samples that are null values and some have no values at all. Also, the features are a mix of data types indicating that there are number of categorical features in the dataset.
 
 Next the `.describe()` and `.head()` methods are used to allow a visual inspection of the data itself.
-
+<!--
 ```python
 raw_data.describe()
 ```
-
+-->
 
 
 
@@ -344,14 +347,14 @@ raw_data.describe()
 </div>
 
 
-
+<!--
 
 ```python
 raw_data.head()
 ```
 
 
-
+-->
 
 <div>
 <style scoped>
@@ -583,6 +586,7 @@ Where there is categorical data, it can be problematic for a single feature to h
 
 The following visualizations show the extent of high dimensionality problem in the dataset.
 
+<!--
 ```python
 high_dimension_categorical_features = []
 for index, dtype in enumerate(raw_data.dtypes):
@@ -597,7 +601,7 @@ high_dimension_categorical_features = pd.DataFrame(high_dimension_categorical_fe
 display(high_dimension_categorical_features)
 high_dimension_categorical_features.plot.barh(x='Column',y='UniqueValueCount')
 ```
-
+-->
 
 <div>
 <style scoped>
@@ -889,7 +893,6 @@ A number of utilities were used for feature engineering, encoding, scaling, sele
 A number of constants were set up to configure these processing utilities.
 
 ```python
-# Set up some necessary constants
 SPLIT_RANDOM_SEED = 42
 SEARCH_RANDOM_SEED = 56
 DCLF_RANDOM_SEED = 42
@@ -1105,22 +1108,23 @@ Then the data was split into training and testing sets and the `DummyClassifier`
 
 ```python
 # train test split
-X_train, X_test, y_train, y_test = model_selection.train_test_split(benchmark_array, labels, test_size=TEST_SIZE, random_state=SPLIT_RANDOM_SEED)
-```
+X_train, X_test, y_train, y_test = model_selection.train_test_split(
+	benchmark_array,
+	labels,
+	test_size=TEST_SIZE,
+	random_state=SPLIT_RANDOM_SEED)
 
-
-```python
 dclf = DummyClassifier(random_state=DCLF_RANDOM_SEED)
-```
 
-
-```python
-# CV the dummy classifier and report the mean f1_score
 kfold = model_selection.StratifiedKFold(n_splits=K_FOLDS, random_state=K_FOLD_RANDOM_SEED)
-cv_results = model_selection.cross_val_score(dclf, X_train, y_train, cv=kfold, scoring=f1_scorer)
-display('Mean f1_score from StratifiedKFold cross validation {:0.2f}'.format(cv_results.mean()))
-```
 
+cv_results = model_selection.cross_val_score(
+	dclf, 
+	X_train,
+	y_train,
+	cv=kfold,
+	scoring=f1_scorer)
+```
 
     'Mean f1_score from StratifiedKFold cross validation 0.56'
 
@@ -1150,6 +1154,7 @@ As indentified in the data exploration and exploratory visualizations section of
 ----------------------------------------------------------------------
 
 **Load the raw dataset**
+
 <!-- 
 ```python
 raw = pd.read_csv('data/csv/raw_data.csv', low_memory=False)
@@ -1237,6 +1242,7 @@ The features were then extracted by name to their own DataFrame and dropped from
 >**NOTE** -  18 was selected as the maximum unique value to tolerate since this was the number of unique opportunity stages. The opportunity stage was decided as being the one categorical feature that all unique values should be preserved on.
 
 **One-hot-encode the high dimensional features and use `FeatureAgglomeration` to reduce the resulting number of encoded features**
+
 <!-- 
 ```python
 hd_features = utils.encode(hd_features)
@@ -1248,6 +1254,7 @@ The high dimensional features are encoded using the `DictVectorizer().fit_transf
 The resulting dataset has 32 features.
 
 **One-hot-encode the rest of the features dataset**
+
 <!-- 
 ```python
 df = utils.encode(df)
@@ -1266,6 +1273,7 @@ The resulting dataset has 40 features.
 **Drop features that are highly correlated with the labels**
 
 First, a new DataFrame is created and it's `corr()` method is used to compile the correlations data. Then those features with a correlation higher than 0.5 were plotted for inspection.
+
 <!-- 
 ```python
 corr_df = df.copy(deep=True)
@@ -1277,9 +1285,10 @@ corr['label'].abs()[corr['label'].abs() > 0.5].plot(kind='barh')
 
 ![png](images/output_68_1.png)
 
- On inspecting the feature names, it's clear that these are correlations that were anticipated during the Exploratory Visualizations phase, so the features are dropped from the dataset.
+On inspecting the feature names, it's clear that these are correlations that were anticipated during the Exploratory Visualizations phase, so the features are dropped from the dataset.
 
- The features dataset drops from 40 to 30 features.
+The features dataset drops from 40 to 30 features.
+
 <!-- 
 ```python
 cols_to_drop = list(corr['label'].abs()[corr['label'].abs() > 0.5].drop(labels=['label']).keys())
@@ -1290,6 +1299,7 @@ print('df shape: ', df.shape)
     Features shape:  (30339, 31) -->
 
 **Final prep of the features dataset as a numpy array**
+
 <!-- 
 ```python
 features = np.hstack((np.asarray(df), hd_features))
